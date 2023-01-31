@@ -10,7 +10,7 @@ def clamp(n, smallest, largest):
   return max(smallest, min(n, largest))
 
 
-class IgnoreCoordinate(Exception):
+class FaultyCoordinate(Exception):
   pass
 
 
@@ -57,47 +57,63 @@ class Game():
     pygame.init()
     self.exit = False
     self.background = pygame.image.load('board.png')
-    self.spaceSize = 230
+    self.xToken = pygame.image.load('x.png')
+    self.oToken = pygame.image.load('o.png')
+
+    self.spaceSize = 260
     self.width = 1050
     self.height = self.width
     self.xOrO = 'x'
     #horizontally counted
     self.spacesTopLeft = {
-        1: (143, 143),
-        2: (409, 143),
-        3: (671, 143),
-        4: (143, 409),
-        7: (143, 671),
-        5: (409, 409),
-        6: (671, 409),
-        8: (409, 671),
-        9: (671, 671)
+        (1, 1): (141, 141),
+        (1, 2): (409, 143),
+        (1, 3): (671, 143),
+        (2, 1): (143, 409),
+        (2, 2): (143, 671),
+        (2, 3): (409, 409),
+        (3, 1): (671, 409),
+        (3, 2): (409, 671),
+        (3, 3): (671, 671)
     }
+    self.occupations = {
+        (1, 1): False,
+        (1, 2): False,
+        (1, 3): False,
+        (2, 1): False,
+        (2, 2): False,
+        (2, 3): False,
+        (3, 1): False,
+        (3, 2): False,
+        (3, 3): False,
+    }
+
     self.gameDisplay = pygame.display.set_mode((self.width, self.height))
     pygame.display.set_caption("τtT")
     self.clock = pygame.time.Clock()
 
-  def CoordsToCell(self, pos):
+  def CoordsToSpace(self, pos):
 
-    #x = math.floor(pos[0] / self.spaceSize)
-    #y = math.floor(pos[1] / self.spaceSize)
-    #if x != clamp(x, 0, 3):
-    #  raise IgnoreCoordinate('nah')
-    #if y != clamp(y, 0, 3):
-    #  raise IgnoreCoordinate('nope')
-    #print(x, y)
-    #return (x, y)
-    for k, v in self.spacesTopLeft.items():
-      if self.spacesTopLeft[k][0] <= pos[0] <= self.spacesTopLeft[k + 1][0] and self.spacesTopLeft[k][1] <= pos[1] <= self.spacesTopLeft[k + 1][1]:
-        print(k)
-        return k
+    x = clamp(math.floor((pos[0] + 141) / self.spaceSize), 1, 3)
+    y = clamp(math.floor((pos[1] + 141) / self.spaceSize), 1, 3)
+    return (x, y)
+
+  def placeSymbol(self, space):
+    '''
+    places x or o in the designated space
+    '''
+    #add turn logic here
+    self.gameDisplay.blit(self.xToken, (self.spacesTopLeft[space]))
+    space = True
 
   def handleEvents(self):
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         self.exit = True
       if event.type == pygame.MOUSEBUTTONDOWN:
-        self.x, self.y = self.CoordsToCell(event.pos)
+        self.x, self.y = self.CoordsToSpace(event.pos)
+        if self.occupations[(self.x, self.y)] == False:
+          self.placeSymbol((self.x, self.y))
 
   def updateGame(self):
     pass
