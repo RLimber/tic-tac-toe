@@ -66,7 +66,6 @@ class Game():
     self.choiceScreen = pygame.image.load('choiceScreen.jpg')
     self.inChoiceScreen = True
     self.turnNumber = 1
-    self.xOrO = 'x'
     self.choiceXRect = pygame.Rect(404, 363, 234, 234)
     self.choiceORect = pygame.Rect(404, 685, 234, 234)
     self.xGroup = pygame.sprite.Group()
@@ -84,15 +83,15 @@ class Game():
         (3, 3): (668, 668)
     }
     self.occupations = {
-        (1, 1): False,
-        (1, 2): False,
-        (1, 3): False,
-        (2, 1): False,
-        (2, 2): False,
-        (2, 3): False,
-        (3, 1): False,
-        (3, 2): False,
-        (3, 3): False,
+        (1, 1): None,
+        (1, 2): None,
+        (1, 3): None,
+        (2, 1): None,
+        (2, 2): None,
+        (2, 3): None,
+        (3, 1): None,
+        (3, 2): None,
+        (3, 3): None,
     }
 
     self.gameDisplay = pygame.display.set_mode((self.width, self.height))
@@ -110,14 +109,23 @@ class Game():
     places x or o in the designated space
     '''
     #add turn logic here
-
     if self.xOrO == 'x':
       spriteTurn = Sprite('x.png', (self.spacesTopLeft[space]))
       self.xGroup.add(spriteTurn)
+      self.occupations[space] = False
     if self.xOrO == 'o':
       spriteTurn = Sprite('o.png', (self.spacesTopLeft[space]))
       self.oGroup.add(spriteTurn)
-    self.occupations[space] = True
+      self.occupations[space] = True
+    self.turnNumber += 1
+
+  def winner(self):
+    for y in range(2):
+      iteration = y + 1
+      for x in self.occupations:
+        if x[0] == iteration:
+          if self.occupations[x]:
+            print('O wins!')
 
   def handleEvents(self):
     for event in pygame.event.get():
@@ -125,7 +133,7 @@ class Game():
         self.exit = True
       if event.type == pygame.MOUSEBUTTONDOWN:
         self.x, self.y = self.CoordsToSpace(event.pos)
-        if self.occupations[(self.x, self.y)] == False and not self.inChoiceScreen:
+        if self.occupations[(self.x, self.y)] == None and not self.inChoiceScreen:
           self.placeSymbol((self.x, self.y))
         if self.inChoiceScreen:
           if self.choiceORect.collidepoint(event.pos):
