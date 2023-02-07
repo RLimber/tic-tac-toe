@@ -63,8 +63,12 @@ class Game():
     self.spaceSize = 260
     self.width = 1050
     self.height = self.width
+    self.choiceScreen = pygame.image.load('choiceScreen.jpg')
+    self.inChoiceScreen = True
     self.turnNumber = 1
     self.xOrO = 'x'
+    self.choiceXRect = pygame.Rect(404, 363, 234, 234)
+    self.choiceORect = pygame.Rect(404, 685, 234, 234)
     self.xGroup = pygame.sprite.Group()
     self.oGroup = pygame.sprite.Group()
     #horizontally counted
@@ -113,8 +117,7 @@ class Game():
     if self.xOrO == 'o':
       spriteTurn = Sprite('o.png', (self.spacesTopLeft[space]))
       self.oGroup.add(spriteTurn)
-
-    space = True
+    self.occupations[space] = True
 
   def handleEvents(self):
     for event in pygame.event.get():
@@ -122,18 +125,29 @@ class Game():
         self.exit = True
       if event.type == pygame.MOUSEBUTTONDOWN:
         self.x, self.y = self.CoordsToSpace(event.pos)
-        if self.occupations[(self.x, self.y)] == False:
+        if self.occupations[(self.x, self.y)] == False and not self.inChoiceScreen:
           self.placeSymbol((self.x, self.y))
+        if self.inChoiceScreen:
+          if self.choiceORect.collidepoint(event.pos):
+            self.xOrO = 'o'
+            self.inChoiceScreen = False
+          elif self.choiceXRect.collidepoint(event.pos):
+            self.xOrO = 'x'
+            self.inChoiceScreen = False
 
   def updateGame(self):
     pass
 
   def draw(self):
-    self.gameDisplay.blit(self.background, (0, 0))
-    for sprite in self.xGroup:
-      sprite.draw(self.gameDisplay)
-    for sprite in self.oGroup:
-      sprite.draw(self.gameDisplay)
+
+    if self.inChoiceScreen:
+      self.gameDisplay.blit(self.choiceScreen, (0, 0))
+    else:
+      self.gameDisplay.blit(self.background, (0, 0))
+      for sprite in self.xGroup:
+        sprite.draw(self.gameDisplay)
+      for sprite in self.oGroup:
+        sprite.draw(self.gameDisplay)
 
   def gameloop(self):
     while not self.exit:
