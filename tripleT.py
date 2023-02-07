@@ -59,22 +59,25 @@ class Game():
     self.background = pygame.image.load('board.png')
     self.xToken = pygame.image.load('x.png')
     self.oToken = pygame.image.load('o.png')
-
+    self.PoE = None
     self.spaceSize = 260
     self.width = 1050
     self.height = self.width
+    self.turnNumber = 1
     self.xOrO = 'x'
+    self.xGroup = pygame.sprite.Group()
+    self.oGroup = pygame.sprite.Group()
     #horizontally counted
     self.spacesTopLeft = {
         (1, 1): (141, 141),
-        (1, 2): (409, 143),
-        (1, 3): (671, 143),
-        (2, 1): (143, 409),
-        (2, 2): (143, 671),
-        (2, 3): (409, 409),
-        (3, 1): (671, 409),
-        (3, 2): (409, 671),
-        (3, 3): (671, 671)
+        (1, 2): (141, 413),
+        (1, 3): (141, 668),
+        (2, 1): (413, 141),
+        (2, 2): (413, 413),
+        (2, 3): (413, 668),
+        (3, 1): (668, 141),
+        (3, 2): (668, 413),
+        (3, 3): (668, 668)
     }
     self.occupations = {
         (1, 1): False,
@@ -103,7 +106,14 @@ class Game():
     places x or o in the designated space
     '''
     #add turn logic here
-    self.gameDisplay.blit(self.xToken, (self.spacesTopLeft[space]))
+
+    if self.xOrO == 'x':
+      spriteTurn = Sprite('x.png', (self.spacesTopLeft[space]))
+      self.xGroup.add(spriteTurn)
+    if self.xOrO == 'o':
+      spriteTurn = Sprite('o.png', (self.spacesTopLeft[space]))
+      self.oGroup.add(spriteTurn)
+
     space = True
 
   def handleEvents(self):
@@ -120,6 +130,10 @@ class Game():
 
   def draw(self):
     self.gameDisplay.blit(self.background, (0, 0))
+    for sprite in self.xGroup:
+      sprite.draw(self.gameDisplay)
+    for sprite in self.oGroup:
+      sprite.draw(self.gameDisplay)
 
   def gameloop(self):
     while not self.exit:
