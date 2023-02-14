@@ -82,6 +82,7 @@ class Game():
         (3, 2): (668, 413),
         (3, 3): (668, 668)
     }
+
     self.occupations = {
         (1, 1): None,
         (1, 2): None,
@@ -120,12 +121,23 @@ class Game():
     self.turnNumber += 1
 
   def winner(self):
-    for y in range(2):
-      iteration = y + 1
-      for x in self.occupations:
-        if x[0] == iteration:
-          if self.occupations[x]:
-            print('O wins!')
+    for x in range(1, 4):
+      first = self.occupations[(x, 1)]
+      column = first == self.occupations[(x, 2)] and first == self.occupations[(x, 3)] and first != None
+      if column:
+        return first
+    for x in range(1, 4):
+      first = self.occupations[(1, x)]
+      row = first == self.occupations[(2, x)] and first == self.occupations[(3, x)] and first != None
+      if row:
+        return first
+    middle = self.occupations[(2, 2)]
+    diagonal = middle == self.occupations[(1, 1)] and middle == self.occupations[(3, 3)] and middle != None
+    if diagonal:
+      return middle
+    diagonal = middle == self.occupations[(1, 3)] and middle == self.occupations[(3, 1)] and middle != None
+    if diagonal:
+      return middle
 
   def handleEvents(self):
     for event in pygame.event.get():
@@ -144,7 +156,8 @@ class Game():
             self.inChoiceScreen = False
 
   def updateGame(self):
-    pass
+    if self.winner():
+      print('easy W for O')
 
   def draw(self):
 
