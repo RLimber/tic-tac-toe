@@ -156,8 +156,11 @@ class Game():
             self.inChoiceScreen = False
 
   def updateGame(self):
-    if self.winner():
+    win = self.winner()
+    if win:
       print('easy W for O')
+    elif win is not None:
+      print("X takes the dub")
 
   def draw(self):
 
