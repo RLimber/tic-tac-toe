@@ -64,7 +64,7 @@ class Game():
     self.turn = None
     self.width = 1050
     self.height = self.width
-    self.choiceScreen = pygame.image.load('choiceScreen.jpg')
+    self.choiceScreen = pygame.image.load('choiceScreen.png')
     self.inChoiceScreen = True
     self.turnNumber = 1
     self.choiceXRect = pygame.Rect(404, 363, 234, 234)
