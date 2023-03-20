@@ -61,6 +61,7 @@ class Game():
     self.oToken = pygame.image.load('o.png')
     self.PoE = None
     self.spaceSize = 260
+    self.turn = None
     self.width = 1050
     self.height = self.width
     self.choiceScreen = pygame.image.load('choiceScreen.jpg')
@@ -114,10 +115,12 @@ class Game():
       spriteTurn = Sprite('x.png', (self.spacesTopLeft[space]))
       self.xGroup.add(spriteTurn)
       self.occupations[space] = False
+      self.turn = True
     if self.xOrO == 'o':
       spriteTurn = Sprite('o.png', (self.spacesTopLeft[space]))
       self.oGroup.add(spriteTurn)
       self.occupations[space] = True
+      self.turn = False
     self.turnNumber += 1
 
   def winner(self):
@@ -150,9 +153,11 @@ class Game():
         if self.inChoiceScreen:
           if self.choiceORect.collidepoint(event.pos):
             self.xOrO = 'o'
+            self.turn = True
             self.inChoiceScreen = False
           elif self.choiceXRect.collidepoint(event.pos):
             self.xOrO = 'x'
+            self.turn = False
             self.inChoiceScreen = False
 
   def updateGame(self):
@@ -161,9 +166,13 @@ class Game():
       print('easy W for O')
     elif win is not None:
       print("X takes the dub")
+    if win is None:
+      if self.turn == False:
+        self.xOrO = 'x'
+      elif self.turn == True:
+        self.xOrO = 'o'
 
   def draw(self):
-
     if self.inChoiceScreen:
       self.gameDisplay.blit(self.choiceScreen, (0, 0))
     else:
