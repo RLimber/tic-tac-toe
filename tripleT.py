@@ -66,9 +66,15 @@ class Game():
     self.height = self.width
     self.choiceScreen = pygame.image.load('choiceScreen.png')
     self.inChoiceScreen = True
+    self.inWinScreen = False
+    self.victor = None
     self.turnNumber = 1
+    self.Xwins = pygame.image.load('Xwins.png')
+    self.Owins = pygame.image.load('Owins.png')
     self.choiceXRect = pygame.Rect(404, 363, 234, 234)
     self.choiceORect = pygame.Rect(404, 685, 234, 234)
+    self.playAgainButton = pygame.Rect(146, 705, 256, 102)
+    self.quitButton = pygame.Rect(146, 822, 256, 102)
     self.xGroup = pygame.sprite.Group()
     self.oGroup = pygame.sprite.Group()
     #horizontally counted
@@ -84,6 +90,13 @@ class Game():
         (3, 3): (668, 668)
     }
 
+    self.resetOccupations()
+
+    self.gameDisplay = pygame.display.set_mode((self.width, self.height))
+    pygame.display.set_caption("τtT")
+    self.clock = pygame.time.Clock()
+
+  def resetOccupations(self):
     self.occupations = {
         (1, 1): None,
         (1, 2): None,
@@ -96,10 +109,6 @@ class Game():
         (3, 3): None,
     }
 
-    self.gameDisplay = pygame.display.set_mode((self.width, self.height))
-    pygame.display.set_caption("τtT")
-    self.clock = pygame.time.Clock()
-
   def CoordsToSpace(self, pos):
 
     x = clamp(math.floor((pos[0] + 141) / self.spaceSize), 1, 3)
@@ -110,7 +119,6 @@ class Game():
     '''
     places x or o in the designated space
     '''
-    #add turn logic here
     if self.xOrO == 'x':
       spriteTurn = Sprite('x.png', (self.spacesTopLeft[space]))
       self.xGroup.add(spriteTurn)
@@ -148,7 +156,7 @@ class Game():
         self.exit = True
       if event.type == pygame.MOUSEBUTTONDOWN:
         self.x, self.y = self.CoordsToSpace(event.pos)
-        if self.occupations[(self.x, self.y)] == None and not self.inChoiceScreen:
+        if self.occupations[(self.x, self.y)] == None and not self.inChoiceScreen and not self.inWinScreen:
           self.placeSymbol((self.x, self.y))
         if self.inChoiceScreen:
           if self.choiceORect.collidepoint(event.pos):
@@ -159,13 +167,26 @@ class Game():
             self.xOrO = 'x'
             self.turn = False
             self.inChoiceScreen = False
+        if self.inWinScreen:
+          if self.playAgainButton.collidepoint(event.pos):
+            self.inChoiceScreen = True
+            self.inWinScreen = False
+            self.resetOccupations()
+            for x in self.xGroup:
+              x.kill()
+            for o in self.oGroup:
+              o.kill()
+          elif self.quitButton.collidepoint(event.pos):
+            quit()
 
   def updateGame(self):
     win = self.winner()
     if win:
-      print('easy W for O')
+      self.inWinScreen = True
+      self.victor = 'o'
     elif win is not None:
-      print("X takes the dub")
+      self.inWinScreen = True
+      self.victor = 'x'
     if win is None:
       if self.turn == False:
         self.xOrO = 'x'
@@ -175,6 +196,11 @@ class Game():
   def draw(self):
     if self.inChoiceScreen:
       self.gameDisplay.blit(self.choiceScreen, (0, 0))
+    elif self.inWinScreen:
+      if self.victor == 'o':
+        self.gameDisplay.blit(self.Owins, (0, 0))
+      elif self.victor == 'x':
+        self.gameDisplay.blit(self.Xwins, (0, 0))
     else:
       self.gameDisplay.blit(self.background, (0, 0))
       for sprite in self.xGroup:
