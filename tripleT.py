@@ -67,10 +67,11 @@ class Game():
     self.choiceScreen = pygame.image.load('choiceScreen.png')
     self.inChoiceScreen = True
     self.inWinScreen = False
-    self.victor = None
     self.turnNumber = 1
     self.Xwins = pygame.image.load('Xwins.png')
     self.Owins = pygame.image.load('Owins.png')
+    self.noWin = pygame.image.load('noWin.png')
+
     self.choiceXRect = pygame.Rect(404, 363, 234, 234)
     self.choiceORect = pygame.Rect(404, 685, 234, 234)
     self.playAgainButton = pygame.Rect(146, 705, 256, 102)
@@ -192,6 +193,9 @@ class Game():
         self.xOrO = 'x'
       elif self.turn == True:
         self.xOrO = 'o'
+    if None not in self.occupations.values() and win is None:
+      self.inWinScreen = True
+      self.victor = 'None'
 
   def draw(self):
     if self.inChoiceScreen:
@@ -201,6 +205,8 @@ class Game():
         self.gameDisplay.blit(self.Owins, (0, 0))
       elif self.victor == 'x':
         self.gameDisplay.blit(self.Xwins, (0, 0))
+      elif self.victor == 'None':
+        self.gameDisplay.blit(self.noWin, (0, 0))
     else:
       self.gameDisplay.blit(self.background, (0, 0))
       for sprite in self.xGroup:
