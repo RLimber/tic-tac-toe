@@ -1,8 +1,17 @@
 import os
 import random
+import math
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
+
+
+def clamp(n, smallest, largest):
+  return max(smallest, min(n, largest))
+
+
+class FaultyCoordinate(Exception):
+  pass
 
 
 class Sprite(pygame.sprite.Sprite):
@@ -48,23 +57,162 @@ class Game():
     pygame.init()
     self.exit = False
     self.background = pygame.image.load('board.png')
-
+    self.xToken = pygame.image.load('x.png')
+    self.oToken = pygame.image.load('o.png')
+    self.PoE = None
+    self.spaceSize = 260
+    self.turn = None
     self.width = 1050
     self.height = self.width
+    self.choiceScreen = pygame.image.load('choiceScreen.png')
+    self.inChoiceScreen = True
+    self.inWinScreen = False
+    self.turnNumber = 1
+    self.Xwins = pygame.image.load('Xwins.png')
+    self.Owins = pygame.image.load('Owins.png')
+    self.noWin = pygame.image.load('noWin.png')
+
+    self.choiceXRect = pygame.Rect(404, 363, 234, 234)
+    self.choiceORect = pygame.Rect(404, 685, 234, 234)
+    self.playAgainButton = pygame.Rect(146, 705, 256, 102)
+    self.quitButton = pygame.Rect(146, 822, 256, 102)
+    self.xGroup = pygame.sprite.Group()
+    self.oGroup = pygame.sprite.Group()
+    #horizontally counted
+    self.spacesTopLeft = {
+        (1, 1): (141, 141),
+        (1, 2): (141, 413),
+        (1, 3): (141, 668),
+        (2, 1): (413, 141),
+        (2, 2): (413, 413),
+        (2, 3): (413, 668),
+        (3, 1): (668, 141),
+        (3, 2): (668, 413),
+        (3, 3): (668, 668)
+    }
+
+    self.resetOccupations()
+
     self.gameDisplay = pygame.display.set_mode((self.width, self.height))
-    pygame.display.set_caption("τθt")
+    pygame.display.set_caption("τtT")
     self.clock = pygame.time.Clock()
+
+  def resetOccupations(self):
+    self.occupations = {
+        (1, 1): None,
+        (1, 2): None,
+        (1, 3): None,
+        (2, 1): None,
+        (2, 2): None,
+        (2, 3): None,
+        (3, 1): None,
+        (3, 2): None,
+        (3, 3): None,
+    }
+
+  def CoordsToSpace(self, pos):
+
+    x = clamp(math.floor((pos[0] + 141) / self.spaceSize), 1, 3)
+    y = clamp(math.floor((pos[1] + 141) / self.spaceSize), 1, 3)
+    return (x, y)
+
+  def placeSymbol(self, space):
+    '''
+    places x or o in the designated space
+    '''
+    if self.xOrO == 'x':
+      spriteTurn = Sprite('x.png', (self.spacesTopLeft[space]))
+      self.xGroup.add(spriteTurn)
+      self.occupations[space] = False
+      self.turn = True
+    if self.xOrO == 'o':
+      spriteTurn = Sprite('o.png', (self.spacesTopLeft[space]))
+      self.oGroup.add(spriteTurn)
+      self.occupations[space] = True
+      self.turn = False
+    self.turnNumber += 1
+
+  def winner(self):
+    for x in range(1, 4):
+      first = self.occupations[(x, 1)]
+      column = first == self.occupations[(x, 2)] and first == self.occupations[(x, 3)] and first != None
+      if column:
+        return first
+    for x in range(1, 4):
+      first = self.occupations[(1, x)]
+      row = first == self.occupations[(2, x)] and first == self.occupations[(3, x)] and first != None
+      if row:
+        return first
+    middle = self.occupations[(2, 2)]
+    diagonal = middle == self.occupations[(1, 1)] and middle == self.occupations[(3, 3)] and middle != None
+    if diagonal:
+      return middle
+    diagonal = middle == self.occupations[(1, 3)] and middle == self.occupations[(3, 1)] and middle != None
+    if diagonal:
+      return middle
 
   def handleEvents(self):
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         self.exit = True
+      if event.type == pygame.MOUSEBUTTONDOWN:
+        self.x, self.y = self.CoordsToSpace(event.pos)
+        if self.occupations[(self.x, self.y)] == None and not self.inChoiceScreen and not self.inWinScreen:
+          self.placeSymbol((self.x, self.y))
+        if self.inChoiceScreen:
+          if self.choiceORect.collidepoint(event.pos):
+            self.xOrO = 'o'
+            self.turn = True
+            self.inChoiceScreen = False
+          elif self.choiceXRect.collidepoint(event.pos):
+            self.xOrO = 'x'
+            self.turn = False
+            self.inChoiceScreen = False
+        if self.inWinScreen:
+          if self.playAgainButton.collidepoint(event.pos):
+            self.inChoiceScreen = True
+            self.inWinScreen = False
+            self.resetOccupations()
+            for x in self.xGroup:
+              x.kill()
+            for o in self.oGroup:
+              o.kill()
+          elif self.quitButton.collidepoint(event.pos):
+            quit()
 
   def updateGame(self):
-    pass
+    win = self.winner()
+    if win:
+      self.inWinScreen = True
+      self.victor = 'o'
+    elif win is not None:
+      self.inWinScreen = True
+      self.victor = 'x'
+    if win is None:
+      if self.turn == False:
+        self.xOrO = 'x'
+      elif self.turn == True:
+        self.xOrO = 'o'
+    if None not in self.occupations.values() and win is None:
+      self.inWinScreen = True
+      self.victor = 'None'
 
   def draw(self):
-    self.gameDisplay.blit(self.background, (0, 0))
+    if self.inChoiceScreen:
+      self.gameDisplay.blit(self.choiceScreen, (0, 0))
+    elif self.inWinScreen:
+      if self.victor == 'o':
+        self.gameDisplay.blit(self.Owins, (0, 0))
+      elif self.victor == 'x':
+        self.gameDisplay.blit(self.Xwins, (0, 0))
+      elif self.victor == 'None':
+        self.gameDisplay.blit(self.noWin, (0, 0))
+    else:
+      self.gameDisplay.blit(self.background, (0, 0))
+      for sprite in self.xGroup:
+        sprite.draw(self.gameDisplay)
+      for sprite in self.oGroup:
+        sprite.draw(self.gameDisplay)
 
   def gameloop(self):
     while not self.exit:
